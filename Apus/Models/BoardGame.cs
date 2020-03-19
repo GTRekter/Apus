@@ -91,7 +91,7 @@ namespace Apus.Models
             Grid = new Quadrant[Width, Height];
 
             // Add mines to the grid
-            do
+            while(minesCount != Mines)
             {
                 int randomWidth = randomNumber.Next(0, Width);
                 int randomHeight = randomNumber.Next(0, Height);
@@ -100,7 +100,7 @@ namespace Apus.Models
                     Grid[randomWidth, randomHeight] = new Quadrant(true);
                     minesCount++;
                 }
-            } while (minesCount != Mines);
+            } 
 
             // Popolate the rest of the grid and add values
             for (int i = 0; i < Width; i++)
@@ -240,16 +240,19 @@ namespace Apus.Models
                 PrintSkull();
                 Console.WriteLine(new string('-', 42));
                 Console.WriteLine("{0,24}"," YOU DIED");
-                Console.WriteLine(new string('-', 42));
-                Console.ForegroundColor = ErrorColor;
-                Console.WriteLine("Press <ANY> key to play again");
+                Console.WriteLine(new string('-', 42));           
             }
             else
             {
                 Console.ForegroundColor = SuccessColor;
-                Console.WriteLine("** Congratulations you won! **");
+                Console.WriteLine(new string('-', 42));
+                PrintShuttle();
+                Console.WriteLine(new string('-', 42));
+                Console.WriteLine("** CONGRATULATIONS YOU SURVIVED! **");
+                Console.WriteLine(new string('-', 42));
             }
             Console.ForegroundColor = PromptColor;
+            Console.WriteLine("Press <ANY> key to play again");
             Console.WriteLine("Enter <QUIT> to Exit");
             Console.ForegroundColor = originalColor;
         }
@@ -282,6 +285,27 @@ namespace Apus.Models
             Console.WriteLine("{0,32}", "### ############**# ###");
             Console.WriteLine("{0,28}", "##-#-#-#-#-#-##");
             Console.WriteLine("{0,27}", "| | | | | | |");
+        }
+
+        /// <summary>
+        /// Print a shuttle using ASCII
+        /// </summary>
+        private void PrintShuttle() 
+        { 
+            Console.WriteLine("{0,18}","^");
+            Console.WriteLine("{0,19}", "/ \\");
+            Console.WriteLine("{0,20}", "/   \\");
+            Console.WriteLine("{0,21}", "/     \\");
+            Console.WriteLine("{0,22}", "|       |");
+            Console.WriteLine("{0,25}", "^ |    ^   | ^ ");
+            Console.WriteLine("{0,25}", "| ||  ( )  || |");
+            Console.WriteLine("{0,25}", "|_|| /'_'\\ ||_|");
+            Console.WriteLine("{0,25}", "| ||/ '_' \\|| |");
+            Console.WriteLine("{0,25}", "|_|/  '_'  \\|_|");
+            Console.WriteLine("{0,25}", "| /   '_'   \\ |");
+            Console.WriteLine("{0,25}", "|<___' | '___>|");
+            Console.WriteLine("{0,25}", "| |   ^^^   | |");
+            Console.WriteLine("{0,25}", "/_\\         /_\\");
         }
         /// <summary>
         /// Check if the user has hit a mine or has won the game
