@@ -15,10 +15,10 @@ namespace Apus
 
         static void Main()
         {
+            PrintHeader(HeaderMessage);
+            BoardGame board = ConfigureGrid();
             do
             {
-                PrintHeader(HeaderMessage);
-                BoardGame board = ConfigureGrid();
 				board.GenerateGrid();
                 do
                 {
@@ -33,8 +33,6 @@ namespace Apus
                 board.PrintGrid(true);
                 board.PrintGameOverMessage();
             } while (!Console.ReadLine().Equals("QUIT",StringComparison.InvariantCultureIgnoreCase));
-
-            Console.ReadLine();
         }
         /// <summary>
         /// Print the header of the game

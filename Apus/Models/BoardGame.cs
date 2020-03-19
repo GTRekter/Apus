@@ -84,8 +84,10 @@ namespace Apus.Models
         {
             int minesCount = 0;
             var randomNumber = new Random();
-            
-            // Initialize a new Matrix of quadrants
+
+            // Initialize a new Matrix of quadrants and reset variables
+            GameOver = false;
+            HasWin = false;
             Grid = new Quadrant[Width, Height];
 
             // Add mines to the grid
@@ -137,7 +139,7 @@ namespace Apus.Models
 
                     var row = 0;
                     var resultConversion = int.TryParse(match.Groups[2].Value, out row);
-                    if (input.Length > 0 && column < Width && row < Height && Grid[row, column].Selected == false && resultConversion)
+                    if (row < Width && column < Height && Grid[row, column].Selected == false && resultConversion)
                     {
                         Grid[row, column].Selected = true;
                         ValidateSelection(row, column);
@@ -248,7 +250,7 @@ namespace Apus.Models
                 Console.WriteLine("** Congratulations you won! **");
             }
             Console.ForegroundColor = PromptColor;
-            Console.Write("Enter <QUIT> to Exit");
+            Console.WriteLine("Enter <QUIT> to Exit");
             Console.ForegroundColor = originalColor;
         }
         /// <summary>
@@ -257,14 +259,14 @@ namespace Apus.Models
         public void PrintUtilitiesMessages()
         {
             Console.WriteLine(new string('-', 42));
-            Console.WriteLine("Available quadreants: {0}", AvailableQuadrants);
+            Console.WriteLine("Available quadrants: {0}", AvailableQuadrants);
         }
         #endregion
         #region Private Methods
         /// <summary>
         /// Print a skull using ASCII
         /// </summary>
-        public void PrintSkull()
+        private void PrintSkull()
         {
             Console.WriteLine("{0,27}", "#############");
             Console.WriteLine("{0,29}", "##############*##");
@@ -294,9 +296,9 @@ namespace Apus.Models
             }
             else
             {
-                if(AvailableQuadrants-- == 0)
+                if(--AvailableQuadrants == 0)
                 {
-                    GameOver = false;
+                    GameOver = true;
                     HasWin = true;
                 }
             }
