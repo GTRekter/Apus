@@ -8,20 +8,50 @@ namespace Apus.Models
 {
     public class BoardGame
     {
-        #region Constants
-        private const ConsoleColor PromptColor = ConsoleColor.White;
-		private const ConsoleColor InputColor = ConsoleColor.Yellow;
-        private const ConsoleColor ErrorColor = ConsoleColor.Red;
-        private const ConsoleColor SuccessColor = ConsoleColor.Green;
-        #endregion
-
         #region Properties
+        /// <summary>
+        /// Show if the game is over
+        /// </summary>
         public bool GameOver { get; set; }
+        /// <summary>
+        /// Show if the user has won the game
+        /// </summary>
         public bool HasWin { get; set; }
+        /// <summary>
+        /// Grid's height
+        /// </summary>
         private int Height { get; set; }
+        /// <summary>
+        /// Grid's width
+        /// </summary>
         private int Width { get; set; }
+        /// <summary>
+        /// Numer of mines
+        /// </summary>
         private int Mines { get; set; }
+        /// <summary>
+        /// Number of available quadrants
+        /// </summary>
         private int AvailableQuadrants { get; set; }
+        /// <summary>
+        /// Color for promps
+        /// </summary>
+        private readonly ConsoleColor PromptColor = ConsoleColor.White;
+        /// <summary>
+        /// Color for user inputs
+        /// </summary>
+        private readonly ConsoleColor InputColor = ConsoleColor.Yellow;
+        /// <summary>
+        /// Color for errors
+        /// </summary>
+        private readonly ConsoleColor ErrorColor = ConsoleColor.Red;
+        /// <summary>
+        /// Color for success
+        /// </summary>
+        private readonly ConsoleColor SuccessColor = ConsoleColor.Green;
+        /// <summary>
+        /// Matrix of quadrants with mines, values, etc.
+        /// </summary>
         private Quadrant[,] Grid { get; set; }
         #endregion
 
@@ -31,10 +61,25 @@ namespace Apus.Models
             Height = height;
             Width = width;
             Mines = mines;
+            AvailableQuadrants = (height * width) - mines;
+        }
+        public BoardGame(int height, int width, int mines, ConsoleColor promptColor, ConsoleColor inputColor, ConsoleColor errorColor, ConsoleColor successColor)
+        {
+            Height = height;
+            Width = width;
+            Mines = mines;
+            PromptColor = promptColor;
+            InputColor = inputColor;
+            ErrorColor = errorColor;
+            SuccessColor = successColor;
+            AvailableQuadrants = (height * width) - mines;
         }
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Generate a new grid. This method also place a N numer of mines in random positions and set the value of the other quadrant with the numer of sorrounding mines.
+        /// </summary>
         public void GenerateGrid()
         {
             int minesCount = 0;
@@ -68,6 +113,10 @@ namespace Apus.Models
                 }
             }
         }
+        /// <summary>
+        /// Ask the user to insert the coordinates of a point, check if the value is valid and then check if the user has won or not.
+        /// </summary>
+        /// <param name="prompt">Message to pront to the user</param>
         public void ReadQuadrant(string prompt)
         {
             ConsoleColor originalColor = Console.ForegroundColor;
@@ -85,8 +134,10 @@ namespace Apus.Models
                     // I slipt the input string into two groups. The first is will contains the chars and the second the digits.
                     var match = Regex.Match(input, @"([|A-Z|a-z|]+)([\d]+)");
                     var column = match.Groups[1].Value.ToAlphabethNumber();
-                    var row = int.Parse(match.Groups[2].Value);
-                    if (input.Length > 0 && column < Width && row < Height && Grid[row, column].Selected == false)
+
+                    var row = 0;
+                    var resultConversion = int.TryParse(match.Groups[2].Value, out row);
+                    if (input.Length > 0 && column < Width && row < Height && Grid[row, column].Selected == false && resultConversion)
                     {
                         Grid[row, column].Selected = true;
                         ValidateSelection(row, column);
@@ -106,6 +157,10 @@ namespace Apus.Models
                 Console.ForegroundColor = originalColor;
             }
         }
+        /// <summary>
+        /// Print the grid with the headers
+        /// </summary>
+        /// <param name="visible">Show or hide the mines</param>
         public void PrintGrid(bool visible)
         {
             ConsoleColor originalColor = Console.ForegroundColor;
@@ -120,12 +175,12 @@ namespace Apus.Models
                         {
                             if (r == 0)
                             {
-                                Console.Write("  ");
+                                Console.Write("{0,18}","");
                             }
                             else
                             {
                                 Console.ForegroundColor = PromptColor;
-                                Console.Write("{0} ", r - 1);
+                                Console.Write("{0,17} ", r - 1);
                             }
                         }
                         else if (r == 0)
@@ -170,23 +225,22 @@ namespace Apus.Models
                 Console.ForegroundColor = originalColor;
             }
         }
-        public void PrintHeader(string prompt)
-        {
-            ConsoleColor originalColor = Console.ForegroundColor;
-            Console.ForegroundColor = PromptColor;
-            Console.WriteLine(new string('-', 42));
-            Console.WriteLine(prompt);
-            Console.WriteLine(new string('-', 42));
-            Console.ForegroundColor = originalColor;
-        }
+        /// <summary>
+        /// Print the winning or loosing message
+        /// </summary>
         public void PrintGameOverMessage()
         {
             ConsoleColor originalColor = Console.ForegroundColor;
             if (!HasWin)
             {
                 Console.ForegroundColor = ErrorColor;
-                Console.WriteLine("** Sorry you hit a mine **");
-                Console.WriteLine("-- Press any key to play again --");
+                Console.WriteLine(new string('-', 42));
+                PrintSkull();
+                Console.WriteLine(new string('-', 42));
+                Console.WriteLine("{0,24}"," YOU DIED");
+                Console.WriteLine(new string('-', 42));
+                Console.ForegroundColor = ErrorColor;
+                Console.WriteLine("Press <ANY> key to play again");
             }
             else
             {
@@ -194,19 +248,47 @@ namespace Apus.Models
                 Console.WriteLine("** Congratulations you won! **");
             }
             Console.ForegroundColor = PromptColor;
-            Console.Write("Enter");
-            Console.ForegroundColor = InputColor;
-            Console.Write(" <QUIT> ");
-            Console.ForegroundColor = PromptColor;
-            Console.WriteLine("to Exit");
+            Console.Write("Enter <QUIT> to Exit");
             Console.ForegroundColor = originalColor;
         }
-        #endregion
-
-        #region Private Methods
-        private void ValidateSelection(int row, int column)
+        /// <summary>
+        /// Print several utility messages like the number of available uadrant, time, etc..
+        /// </summary>
+        public void PrintUtilitiesMessages()
         {
-            if (Grid[row, column].IsMine)
+            Console.WriteLine(new string('-', 42));
+            Console.WriteLine("Available quadreants: {0}", AvailableQuadrants);
+        }
+        #endregion
+        #region Private Methods
+        /// <summary>
+        /// Print a skull using ASCII
+        /// </summary>
+        public void PrintSkull()
+        {
+            Console.WriteLine("{0,27}", "#############");
+            Console.WriteLine("{0,29}", "##############*##");
+            Console.WriteLine("{0,30}", "################**#");
+            Console.WriteLine("{0,31}", "#################***#");
+            Console.WriteLine("{0,32}", "##################****#");
+            Console.WriteLine("{0,33}", "###################*****#");
+            Console.WriteLine("{0,33}", "####   ###########   ***#");
+            Console.WriteLine("{0,33}", "###      #######      **#");
+            Console.WriteLine("{0,33}", "###   X   #####   X   **#");
+            Console.WriteLine("{0,33}", "####     ## # ##     ***#");
+            Console.WriteLine("{0,33}", "########## ### ##*******#");
+            Console.WriteLine("{0,32}", "### ############**# ###");
+            Console.WriteLine("{0,28}", "##-#-#-#-#-#-##");
+            Console.WriteLine("{0,27}", "| | | | | | |");
+        }
+        /// <summary>
+        /// Check if the user has hit a mine or has won the game
+        /// </summary>
+        /// <param name="x">X-axis coordinates</param>
+        /// <param name="y">Y-axis coordinates</param>
+        private void ValidateSelection(int x, int y)
+        {
+            if (Grid[x, y].IsMine)
             {
                 GameOver = true;
             }
@@ -220,38 +302,38 @@ namespace Apus.Models
             }
         }
         /// <summary>
-        /// Calculate number of mines around the current quadrant
+        /// Calculate the number of mines around the current quadrant
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
+        /// <param name="x">X-axis coordinates</param>
+        /// <param name="y">Y-axis coordinates</param>
         /// <returns>Mines count</returns>
-        private int GetMinesAround(int row, int column)
+        private int GetMinesAround(int x, int y)
         {
             int mines = 0;
-            int topLeftRow = row - 1;
-            int topLeftColumn = column - 1;
-            int bottomRightRow = row + 1;
-            int bottomRightColumn = column + 1;
+            int minimumX = x - 1;
+            int minimumY = y - 1;
+            int maximumX = x + 1;
+            int maximumY = y + 1;
 
-            if (row-1 < 0)
+            if (x-1 < 0)
             {
-                topLeftRow = row;
+                minimumX = x;
             }
-            if (row + 1 >= Width)
+            if (x + 1 >= Width)
             {
-                bottomRightRow = row;
+                maximumX = x;
             }
-            if (column - 1 < 0)
+            if (y - 1 < 0)
             {
-                topLeftColumn = column;
+                minimumY = y;
             }
-            if (column + 1 >= Height)
+            if (y + 1 >= Height)
             {
-                bottomRightColumn = column;
+                maximumY = y;
             }
-            for (int i = topLeftRow; i <= bottomRightRow; i++)
+            for (int i = minimumX; i <= maximumX; i++)
             {
-                for (int j = topLeftColumn; j <= bottomRightColumn; j++)
+                for (int j = minimumY; j <= maximumY; j++)
                 {
                     if (Grid[i, j] != null && Grid[i, j].IsMine)
                     {
