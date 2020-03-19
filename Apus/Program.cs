@@ -5,23 +5,23 @@ namespace Apus
 {
     class Program
     {
-
-        static void Main(string[] args)
+        static void Main()
         {
-
-            BoardGame board = new BoardGame(4, 4, 8);
-            board.PrintHeader(" Minesweeper - Console Application v. 1.0");
-            board.GenerateGrid();
-            //do
-            //{
-            for (int i = 0; i < 10; i++)
+            do
             {
-                board.PrintGrid(false);
-                board.ReadQuadrant("Please enter a column and row(e.g.A8): ");
+                BoardGame board = new BoardGame(4, 4, 8);
+                board.GenerateGrid();
+                do
+                {
+                    Console.Clear();
+                    board.PrintHeader(" Minesweeper - Console Application v. 1.0");
+                    board.PrintGrid(false);
+                    board.ReadQuadrant("Please enter a column and row(e.g.A8): ");
+                } while (board.GameOver == false);
                 Console.Clear();
-            }
-                
-            //} while (board.GameOver == false);
+                board.PrintGrid(true);
+                board.PrintGameOverMessage();
+            } while (Console.ReadLine() != "QUIT");
 
             Console.ReadLine();
         }
